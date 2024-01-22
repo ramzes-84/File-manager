@@ -42,7 +42,6 @@ export class FileManager {
       if (itemStat.isFile()) return { Name: item, Type: "file" };
       if (itemStat.isDirectory()) return { Name: item, Type: "folder" };
     });
-    console.log(tabularData);
     return tabularData;
   }
 }
