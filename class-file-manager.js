@@ -1,5 +1,7 @@
 import { sep, normalize, resolve } from "node:path";
 import { readdir, stat } from "node:fs/promises";
+import { createReadStream } from "node:fs";
+import { sortTabularData } from "./utils.js";
 
 export class FileManager {
   constructor(userName, userDir) {
@@ -35,13 +37,20 @@ export class FileManager {
     this.currDir = normdPath.split(sep);
   }
   async ls() {
-    const path = resolve(this.currDir.join(sep));
+    const path = resolve(this.currDir.join(sep) + "/");
     const dirContent = await readdir(path);
     const tabularData = dirContent.map(async (item) => {
       const itemStat = await stat(resolve(path, item));
       if (itemStat.isFile()) return { Name: item, Type: "file" };
       if (itemStat.isDirectory()) return { Name: item, Type: "folder" };
     });
-    return tabularData;
+    const result = await Promise.allSettled(tabularData);
+    return sortTabularData(result);
+  }
+  read(path) {
+    if (!path) return new Error("Lack of arguments");
+    const resolvedPath = resolve(this.currDir.join(sep), path);
+    const content = createReadStream(resolvedPath);
+    return content;
   }
 }

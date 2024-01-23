@@ -1,3 +1,4 @@
+import { ReadStream } from "node:fs";
 import { cmdOverloaded, lackOfArgs } from "./constants.js";
 import { stdout } from "node:process";
 
@@ -32,6 +33,24 @@ export const handleCmd = async function (data, fm) {
       stdout.write(fm.showCurrDir());
       break;
     }
+    case "cat": {
+      const folderContent = fm.read(command[1]);
+      if (folderContent instanceof ReadStream) {
+        folderContent.pipe(stdout);
+        folderContent.on("end", () => stdout.write("\n"));
+        folderContent.on("error", (err) => {
+          if (err.errno === -4058) {
+            stdout.write(`Operation failed: ${err.message}.\n`);
+            stdout.write(fm.showCurrDir());
+          } else throw err;
+        });
+      }
+      if (folderContent instanceof Error) {
+        stdout.write(`Operation failed: ${folderContent.message}.\n`);
+        stdout.write(fm.showCurrDir());
+      }
+      break;
+    }
     default:
       stdout.write(`Invalid input\n${fm.showCurrDir()}`);
       break;
@@ -39,9 +58,33 @@ export const handleCmd = async function (data, fm) {
 };
 
 const checkInput = function (cmdArr) {
-  const simpleCmds = ["up", "ls", ".exit"];
-  const complexCmds = ["cd"];
-  if (simpleCmds.includes(cmdArr[0]) && cmdArr.length > 1) return cmdOverloaded;
-  if (complexCmds.includes(cmdArr[0]) && cmdArr.length === 1) return lackOfArgs;
+  const oneArgCmds = ["up", "ls", ".exit"];
+  const twoArgsCmds = ["cd", "cat", "add", "rm", "os", "hash"];
+  const threeArgsCmds = ["rn", "cp", "mv", "compress", "decompress"];
+  if (oneArgCmds.includes(cmdArr[0]) && cmdArr.length > 1) return cmdOverloaded;
+  if (twoArgsCmds.includes(cmdArr[0])) {
+    if (cmdArr.length < 2) return lackOfArgs;
+    if (cmdArr.length >= 3) return cmdOverloaded;
+  }
+  if (threeArgsCmds.includes(cmdArr[0])) {
+    if (cmdArr.length < 3) return lackOfArgs;
+    if (cmdArr.length >= 4) return cmdOverloaded;
+  }
   return null;
+};
+
+export const sortTabularData = function (tabularData) {
+  const clearedStat = tabularData
+    .map((item) => {
+      if (item.status === "fulfilled" && item.value) return item.value;
+    })
+    .filter((item) => item);
+  console.log(clearedStat);
+  const foldersDataArr = clearedStat
+    .filter((item) => item.Type === "folder")
+    .sort((a, b) => a.Name > b.Name);
+  const filesDataArr = clearedStat
+    .filter((item) => item.Type === "file")
+    .sort((a, b) => a.Name > b.Name);
+  return [...foldersDataArr, ...filesDataArr];
 };
