@@ -96,6 +96,34 @@ export const handleCmd = async function (data, fm) {
       stdout.write(fm.showCurrDir());
       break;
     }
+    case "os": {
+      if (command[1]) {
+        const info = fm.getOSInfo(command[1]);
+        console.log(info);
+      }
+      stdout.write(fm.showCurrDir());
+      break;
+    }
+    case "hash": {
+      if (command[1]) {
+        fm.calcHash(command[1]);
+      }
+      break;
+    }
+    case "compress": {
+      if (command[1] && command[2]) {
+        const error = await fm.compress(command[1], command[2]);
+        if (error) stdout.write(`Operation failed: ${error.message}.\n`);
+      }
+      break;
+    }
+    case "decompress": {
+      if (command[1] && command[2]) {
+        const error = await fm.decompress(command[1], command[2]);
+        if (error) stdout.write(`Operation failed: ${error.message}.\n`);
+      }
+      break;
+    }
 
     default:
       stdout.write(`Invalid input\n${fm.showCurrDir()}`);
