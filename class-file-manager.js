@@ -9,12 +9,10 @@ import {
 } from "node:fs/promises";
 import { createReadStream, createWriteStream } from "node:fs";
 import { sortTabularData } from "./utils.js";
-import { dir } from "node:console";
 
 export class FileManager {
   constructor(userName, userDir) {
     this.user = userName;
-    this.userDir = userDir;
     this.currDir = parse(userDir);
   }
   getCurrDir() {
@@ -100,5 +98,13 @@ export class FileManager {
       if (remove) await rm(sourcePath);
     });
     reading.pipe(writing);
+  }
+  async deleteFile(path) {
+    const filePath = resolve(this.getCurrDir(), path);
+    try {
+      await rm(filePath);
+    } catch (err) {
+      return err;
+    }
   }
 }

@@ -87,6 +87,15 @@ export const handleCmd = async function (data, fm) {
       stdout.write(fm.showCurrDir());
       break;
     }
+    case "rm": {
+      if (command[1]) {
+        const error = await fm.deleteFile(command[1]);
+        if (error) stdout.write(`Operation failed: ${error.message}.\n`);
+        else stdout.write(`File deleted.\n`);
+      }
+      stdout.write(fm.showCurrDir());
+      break;
+    }
 
     default:
       stdout.write(`Invalid input\n${fm.showCurrDir()}`);
