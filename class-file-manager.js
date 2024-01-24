@@ -115,7 +115,7 @@ export class FileManager {
   getOSInfo(command) {
     switch (command) {
       case "--EOL":
-        return EOL;
+        return JSON.stringify(EOL);
       case "--cpus":
         const cpusInfo = cpus();
         return cpusInfo.map((cpu, index, arr) => {
