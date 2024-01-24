@@ -51,6 +51,43 @@ export const handleCmd = async function (data, fm) {
       }
       break;
     }
+    case "add": {
+      if (command[1]) {
+        const error = await fm.add(command[1]);
+        if (error) stdout.write(`Operation failed: ${error.message}.\n`);
+        else stdout.write(`File "${command[1]}" created.\n`);
+      }
+      stdout.write(fm.showCurrDir());
+      break;
+    }
+    case "rn": {
+      if (command[1] && command[2]) {
+        const error = await fm.renameFile(command[1], command[2]);
+        if (error) stdout.write(`Operation failed: ${error.message}.\n`);
+        else stdout.write(`File renamed.\n`);
+      }
+      stdout.write(fm.showCurrDir());
+      break;
+    }
+    case "cp": {
+      if (command[1] && command[2]) {
+        const error = await fm.copyFile(command[1], command[2]);
+        if (error) stdout.write(`Operation failed: ${error.message}.\n`);
+        else stdout.write(`File copied.\n`);
+      }
+      stdout.write(fm.showCurrDir());
+      break;
+    }
+    case "mv": {
+      if (command[1] && command[2]) {
+        const error = await fm.copyFile(command[1], command[2], true);
+        if (error) stdout.write(`Operation failed: ${error.message}.\n`);
+        else stdout.write(`File moved.\n`);
+      }
+      stdout.write(fm.showCurrDir());
+      break;
+    }
+
     default:
       stdout.write(`Invalid input\n${fm.showCurrDir()}`);
       break;
@@ -79,7 +116,6 @@ export const sortTabularData = function (tabularData) {
       if (item.status === "fulfilled" && item.value) return item.value;
     })
     .filter((item) => item);
-  console.log(clearedStat);
   const foldersDataArr = clearedStat
     .filter((item) => item.Type === "folder")
     .sort((a, b) => a.Name > b.Name);
