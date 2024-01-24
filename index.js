@@ -1,5 +1,5 @@
 import { FileManager } from "./class-file-manager.js";
-import { handleCmd } from "./utils.js";
+import { cmdController } from "./controller.js";
 import { stdin, stdout, argv } from "node:process";
 import { homedir } from "os";
 
@@ -20,7 +20,7 @@ const runFileManager = async () => {
     process.exit(0);
   });
 
-  stdin.on("data", async (data) => handleCmd(data, fm));
+  stdin.on("data", async (data) => cmdController(data, fm));
 };
 
 runFileManager();
