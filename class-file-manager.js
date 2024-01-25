@@ -46,7 +46,7 @@ export class FileManager {
     try {
       await readdir(resolvedPath);
     } catch (err) {
-      if (err.errno === -4058) return err;
+      if (err.errno === -4058 || err.errno === -2) return err;
       throw err;
     }
     this.setCurrDir(resolvedPath);

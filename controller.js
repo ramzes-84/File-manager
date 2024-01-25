@@ -37,7 +37,7 @@ export const cmdController = async function (data, fm) {
         folderContent.pipe(stdout);
         folderContent.on("end", () => stdout.write("\n"));
         folderContent.on("error", (err) => {
-          if (err.errno === -4058) {
+          if (err.errno === -4058 || err.errno === -2) {
             stdout.write(`Operation failed: ${err.message}.\n`);
             stdout.write(fm.showCurrDir());
           } else throw err;
