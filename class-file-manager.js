@@ -46,7 +46,8 @@ export class FileManager {
     try {
       await readdir(resolvedPath);
     } catch (err) {
-      if (err.errno === -4058 || err.errno === -2) return err;
+      if (err.errno === -4058 || err.errno === -2 || err.errno === -4048)
+        return err;
       throw err;
     }
     this.setCurrDir(resolvedPath);
@@ -146,16 +147,15 @@ export class FileManager {
     });
   }
   async compress(source, target) {
-    const currPath = this.getCurrDir();
-    const sourcePath = resolve(currPath, source);
-    const targetPath = resolve(currPath, target);
-    const targetFile = resolve(targetPath, parse(sourcePath).base + ".BR");
+    const sourcePath = resolve(this.getCurrDir(), source);
+    const targetPath = resolve(this.getCurrDir(), target);
     try {
       await readFileProm(sourcePath);
       await readdir(targetPath);
     } catch (err) {
       return err;
     }
+    const targetFile = resolve(targetPath, parse(sourcePath).base + ".BR");
 
     const reading = createReadStream(sourcePath);
     const writing = createWriteStream(targetFile);
