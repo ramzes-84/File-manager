@@ -2,7 +2,7 @@ import { ReadStream } from "node:fs";
 import { stdout } from "node:process";
 import { inputCorrectnessChecker, cmdParser } from "./utils.js";
 
-export const cmdController = async function (data, fm) {
+export const cmdController = async function (data, { fm, os, zip, hash }) {
   const cmdArr = cmdParser(data);
   const warning = inputCorrectnessChecker(cmdArr);
   if (warning) stdout.write(warning);
@@ -95,28 +95,28 @@ export const cmdController = async function (data, fm) {
     }
     case "os": {
       if (cmdArr[1]) {
-        const info = fm.getOSInfo(cmdArr[1]);
+        const info = os.getOSInfo(cmdArr[1]);
         console.log(info);
       }
-      stdout.write(fm.showCurrDir());
+      stdout.write(os.showCurrDir());
       break;
     }
     case "hash": {
       if (cmdArr[1]) {
-        fm.calcHash(cmdArr[1]);
+        hash.calcHash(cmdArr[1]);
       }
       break;
     }
     case "compress": {
       if (cmdArr[1] && cmdArr[2]) {
-        const error = await fm.compress(cmdArr[1], cmdArr[2]);
+        const error = await zip.compress(cmdArr[1], cmdArr[2]);
         if (error) stdout.write(`Operation failed: ${error.message}.\n`);
       }
       break;
     }
     case "decompress": {
       if (cmdArr[1] && cmdArr[2]) {
-        const error = await fm.decompress(cmdArr[1], cmdArr[2]);
+        const error = await zip.decompress(cmdArr[1], cmdArr[2]);
         if (error) stdout.write(`Operation failed: ${error.message}.\n`);
       }
       break;
