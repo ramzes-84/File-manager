@@ -36,10 +36,8 @@ export const cmdController = async function (data, { fm, os, zip, hash }) {
         folderContent.pipe(stdout);
         folderContent.on("end", () => stdout.write("\n"));
         folderContent.on("error", (err) => {
-          // if (err.errno === -4058 || err.errno === -2 || err.errno === -4048) {
           stdout.write(`Operation failed: ${err.message}.\n`);
           stdout.write(fm.showCurrDir());
-          // } else throw err;
         });
       }
       if (folderContent instanceof Error) {
@@ -67,21 +65,11 @@ export const cmdController = async function (data, { fm, os, zip, hash }) {
       break;
     }
     case "cp": {
-      if (cmdArr[1] && cmdArr[2]) {
-        const error = await fm.copyFile(cmdArr[1], cmdArr[2]);
-        if (error) stdout.write(`Operation failed: ${error.message}.\n`);
-        else stdout.write(`File copied.\n`);
-      }
-      stdout.write(fm.showCurrDir());
+      if (cmdArr[1] && cmdArr[2]) fm.copyFile(cmdArr[1], cmdArr[2]);
       break;
     }
     case "mv": {
-      if (cmdArr[1] && cmdArr[2]) {
-        const error = await fm.copyFile(cmdArr[1], cmdArr[2], true);
-        if (error) stdout.write(`Operation failed: ${error.message}.\n`);
-        else stdout.write(`File moved.\n`);
-      }
-      stdout.write(fm.showCurrDir());
+      if (cmdArr[1] && cmdArr[2]) fm.copyFile(cmdArr[1], cmdArr[2], true);
       break;
     }
     case "rm": {
@@ -102,23 +90,15 @@ export const cmdController = async function (data, { fm, os, zip, hash }) {
       break;
     }
     case "hash": {
-      if (cmdArr[1]) {
-        hash.calcHash(cmdArr[1]);
-      }
+      if (cmdArr[1]) hash.calcHash(cmdArr[1]);
       break;
     }
     case "compress": {
-      if (cmdArr[1] && cmdArr[2]) {
-        const error = await zip.compress(cmdArr[1], cmdArr[2]);
-        if (error) stdout.write(`Operation failed: ${error.message}.\n`);
-      }
+      if (cmdArr[1] && cmdArr[2]) zip.compress(cmdArr[1], cmdArr[2], true);
       break;
     }
     case "decompress": {
-      if (cmdArr[1] && cmdArr[2]) {
-        const error = await zip.decompress(cmdArr[1], cmdArr[2]);
-        if (error) stdout.write(`Operation failed: ${error.message}.\n`);
-      }
+      if (cmdArr[1] && cmdArr[2]) zip.compress(cmdArr[1], cmdArr[2], false);
       break;
     }
     default:

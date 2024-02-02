@@ -1,4 +1,5 @@
 import { format, parse } from "node:path";
+import { stdout } from "node:process";
 
 export class FileManager {
   constructor(userName, userDir) {
@@ -19,5 +20,9 @@ export class FileManager {
   }
   showCurrDir() {
     return `You are currently in ${this.getCurrDir()}\n`;
+  }
+  showError(err) {
+    stdout.write(`Operation failed: ${err.message}.\n`);
+    stdout.write(this.showCurrDir());
   }
 }

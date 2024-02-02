@@ -10,6 +10,7 @@ import {
 import { createReadStream, createWriteStream } from "node:fs";
 import { sortTabularData } from "./utils.js";
 import { FileManager } from "./File-manager.js";
+import { stdout } from "node:process";
 
 export class FileOperations extends FileManager {
   constructor(userName, userDir) {
@@ -22,14 +23,10 @@ export class FileOperations extends FileManager {
   }
   async changeDir(path) {
     const resolvedPath = resolve(this.getCurrDir(), path);
-    if (parse(resolvedPath).root !== this.currDir.root)
-      return new Error("The path is beyond the root folder");
     try {
       await readdir(resolvedPath);
     } catch (err) {
-      // if (err.errno === -4058 || err.errno === -2 || err.errno === -4048)
       return err;
-      // throw err;
     }
     this.setCurrDir(resolvedPath);
   }
@@ -67,22 +64,25 @@ export class FileOperations extends FileManager {
       return err;
     }
   }
-  async copyFile(source, target, remove) {
+  copyFile(source, target, remove) {
     const currPath = this.getCurrDir();
     const sourcePath = resolve(currPath, source);
     const targetPath = resolve(currPath, target);
     const targetFile = resolve(targetPath, parse(sourcePath).base);
-    try {
-      await readFileProm(sourcePath);
-      await readdir(targetPath);
-      await writeFile(targetFile, "");
-    } catch (err) {
-      return err;
-    }
     const reading = createReadStream(sourcePath);
     const writing = createWriteStream(targetFile);
+    reading.on("error", (err) => this.showError(err));
+    writing.on("error", (err) => this.showError(err));
     writing.on("finish", async () => {
-      if (remove) await rm(sourcePath);
+      if (remove) {
+        try {
+          await rm(sourcePath);
+        } catch (err) {
+          this.showError(err);
+        }
+      }
+      stdout.write(remove ? `File moved.\n` : `File copied.\n`);
+      stdout.write(this.showCurrDir());
     });
     reading.pipe(writing);
   }

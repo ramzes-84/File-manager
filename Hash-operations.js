@@ -20,5 +20,6 @@ export class HashOperations extends FileManager {
         stdout.write(this.showCurrDir());
       }
     });
+    readStream.on("error", (err) => this.showError(err));
   }
 }
