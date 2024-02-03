@@ -1,4 +1,4 @@
-import { resolve, format, parse } from "node:path";
+import { resolve, parse } from "node:path";
 import {
   readdir,
   rm,
@@ -9,42 +9,24 @@ import {
 } from "node:fs/promises";
 import { createReadStream, createWriteStream } from "node:fs";
 import { sortTabularData } from "./utils.js";
-import { dir } from "node:console";
+import { FileManager } from "./File-manager.js";
+import { stdout } from "node:process";
 
-export class FileManager {
+export class FileOperations extends FileManager {
   constructor(userName, userDir) {
-    this.user = userName;
-    this.userDir = userDir;
-    this.currDir = parse(userDir);
+    super(userName, userDir);
   }
-  getCurrDir() {
-    return format(this.currDir);
-  }
-  setCurrDir(newCurrDir) {
-    this.currDir = parse(newCurrDir);
-  }
-  greet() {
-    return `Welcome to the File Manager, ${this.user}!\n`;
-  }
-  bye() {
-    return `Thank you for using File Manager, ${this.user}, goodbye!\n`;
-  }
-  showCurrDir() {
-    return `You are currently in ${this.getCurrDir()}\n`;
-  }
+
   goUp() {
     const upLevel = resolve(this.getCurrDir(), "../");
     this.setCurrDir(upLevel);
   }
   async changeDir(path) {
     const resolvedPath = resolve(this.getCurrDir(), path);
-    if (parse(resolvedPath).root !== this.currDir.root)
-      return new Error("The path is beyond the root folder");
     try {
       await readdir(resolvedPath);
     } catch (err) {
-      if (err.errno === -4058) return err;
-      throw err;
+      return err;
     }
     this.setCurrDir(resolvedPath);
   }
@@ -82,23 +64,34 @@ export class FileManager {
       return err;
     }
   }
-  async copyFile(source, target, remove) {
+  copyFile(source, target, remove) {
     const currPath = this.getCurrDir();
     const sourcePath = resolve(currPath, source);
     const targetPath = resolve(currPath, target);
     const targetFile = resolve(targetPath, parse(sourcePath).base);
+    const reading = createReadStream(sourcePath);
+    const writing = createWriteStream(targetFile);
+    reading.on("error", (err) => this.showError(err));
+    writing.on("error", (err) => this.showError(err));
+    writing.on("finish", async () => {
+      if (remove) {
+        try {
+          await rm(sourcePath);
+        } catch (err) {
+          this.showError(err);
+        }
+      }
+      stdout.write(remove ? `File moved.\n` : `File copied.\n`);
+      stdout.write(this.showCurrDir());
+    });
+    reading.pipe(writing);
+  }
+  async deleteFile(path) {
+    const filePath = resolve(this.getCurrDir(), path);
     try {
-      await readFileProm(sourcePath);
-      await readdir(targetPath);
-      await writeFile(targetFile, "");
+      await rm(filePath);
     } catch (err) {
       return err;
     }
-    const reading = createReadStream(sourcePath);
-    const writing = createWriteStream(targetFile);
-    writing.on("finish", async () => {
-      if (remove) await rm(sourcePath);
-    });
-    reading.pipe(writing);
   }
 }

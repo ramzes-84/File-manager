@@ -1,7 +1,10 @@
-import { FileManager } from "./class-file-manager.js";
-import { handleCmd } from "./utils.js";
+import { cmdController } from "./controller.js";
 import { stdin, stdout, argv } from "node:process";
 import { homedir } from "os";
+import { FileOperations } from "./File-operations.js";
+import { OsOperations } from "./Os-operations.js";
+import { ZipOperations } from "./Zip-operations.js";
+import { HashOperations } from "./Hash-operations.js";
 
 const userDir = homedir();
 const userArg = argv.slice(2).find((arg) => arg.startsWith("--username="));
@@ -10,7 +13,10 @@ const userName = userArg
   : "Anonymous user";
 
 const runFileManager = async () => {
-  const fm = new FileManager(userName, userDir);
+  const fm = new FileOperations(userName, userDir);
+  const os = new OsOperations(userName, userDir);
+  const zip = new ZipOperations(userName, userDir);
+  const hash = new HashOperations(userName, userDir);
 
   stdout.write(fm.greet());
   stdout.write(fm.showCurrDir());
@@ -20,7 +26,7 @@ const runFileManager = async () => {
     process.exit(0);
   });
 
-  stdin.on("data", async (data) => handleCmd(data, fm));
+  stdin.on("data", async (data) => cmdController(data, { fm, os, zip, hash }));
 };
 
 runFileManager();
